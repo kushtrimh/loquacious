@@ -1,13 +1,12 @@
 package auth
 
 import (
+	"bytes"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
-	"io/ioutil"
+	"io"
 	"log"
-	"os"
-	"path/filepath"
 )
 
 // An Auth struct represent the authentication data
@@ -27,28 +26,24 @@ func (a *Auth) Base64Encoded() string {
 // Retrieve the auth data from the give config.
 // Error will be returned if the config file does not exist, or it
 // cannot be opened
-func RetrieveAuthConfig(configFilename string) (*Auth, error) {
-	if configFilename == "" {
-		errors.New("No config filename specified")
+func RetrieveAuthConfig(reader io.Reader) (*Auth, error) {
+	if reader == nil {
+		errors.New("Reader is required")
 	}
-	configPath := authConfigPath(configFilename)
-	configExists := AuthConfigExists(configFilename)
-	if configExists {
-		data, err := ioutil.ReadFile(configPath)
-		if err != nil {
-			log.Fatal("Could not open auth config file", err)
-		}
-		return createAuthConfig(data), nil
+	data := make([]byte, 2048)
+	_, err := reader.Read(data)
+	if err != nil {
+		log.Fatal("Could not read auth config data", err)
 	}
-	return nil, errors.New("Auth config file is corrupted or does not exist")
+	return createAuthConfig(bytes.Trim(data, "\x00")), nil
 }
 
 // Create the auth config file with the given id and secret
 // The data in the created file will be saved as a JSON object
 // An error is returned if the file cannot be created or if any of the parameters
 // are missing.
-func CreateAuthConfig(id, secret, configFilename string) (*Auth, error) {
-	if id == "" || secret == "" || configFilename == "" {
+func CreateAuthConfig(id, secret string, writer io.Writer) (*Auth, error) {
+	if id == "" || secret == "" || writer == nil {
 		return nil, errors.New("Id, secret and config filename are required")
 	}
 	auth := Auth{id, secret}
@@ -56,35 +51,18 @@ func CreateAuthConfig(id, secret, configFilename string) (*Auth, error) {
 	if err != nil {
 		return nil, err
 	}
-	err = ioutil.WriteFile(authConfigPath(configFilename), authData, 0600)
-	if err != nil {
+	if _, err := writer.Write(authData); err != nil {
 		return nil, err
 	}
 	return &auth, nil
 }
 
-// Check if a file exists for the given filename
-func AuthConfigExists(configFilename string) bool {
-	_, err := os.Stat(authConfigPath(configFilename))
-	if err != nil {
-		return !os.IsNotExist(err)
-	}
-	return true
-}
-
 func createAuthConfig(configData []byte) *Auth {
 	var auth Auth
+	log.Println(configData)
 	err := json.Unmarshal(configData, &auth)
 	if err != nil {
 		log.Fatal(err)
 	}
 	return &auth
-}
-
-func authConfigPath(configFilename string) string {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		log.Fatal(err)
-	}
-	return filepath.Join(homeDir, configFilename)
 }
