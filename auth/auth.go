@@ -1,71 +1,68 @@
 package auth
 
 import (
+	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
-	"io/ioutil"
+	"io"
 	"log"
-	"os"
-	"path/filepath"
 )
 
-const authConfig string = ".loquacious-auth.json"
-
+// An Auth struct represent the authentication data
+// that is needed to authenticate with an API
 type Auth struct {
 	Id     string
 	Secret string
 }
 
-func RetrieveAuthConfig() (*Auth, error) {
-	configPath := authConfigPath()
-	configExists := AuthConfigExists()
-	if configExists {
-		data, err := ioutil.ReadFile(configPath)
-		if err != nil {
-			log.Fatal("Could not open auth config file", err)
-		}
-		return createAuthConfig(data), nil
-	}
-	return nil, errors.New("Auth config file is corrupted or does not exist")
+// Base64Encoded encodes the id and secret with base64
+// in the format id:secret
+func (a *Auth) Base64Encoded() string {
+	authentication := a.Id + ":" + a.Secret
+	return base64.StdEncoding.EncodeToString([]byte(authentication))
 }
 
-func CreateAuthConfig(id, secret string) (*Auth, error) {
-	if id == "" || secret == "" {
-		return nil, errors.New("Id and secret are required")
+// Retrieve the auth data from the give config.
+// Error will be returned if the config file does not exist, or it
+// cannot be opened
+func RetrieveAuthConfig(reader io.Reader) (*Auth, error) {
+	if reader == nil {
+		errors.New("Reader is required")
+	}
+	data := make([]byte, 2048)
+	_, err := reader.Read(data)
+	if err != nil {
+		log.Fatal("Could not read auth config data", err)
+	}
+	return createAuthConfig(bytes.Trim(data, "\x00")), nil
+}
+
+// Create the auth config file with the given id and secret
+// The data in the created file will be saved as a JSON object
+// An error is returned if the file cannot be created or if any of the parameters
+// are missing.
+func CreateAuthConfig(id, secret string, writer io.Writer) (*Auth, error) {
+	if id == "" || secret == "" || writer == nil {
+		return nil, errors.New("Id, secret and config filename are required")
 	}
 	auth := Auth{id, secret}
 	authData, err := json.Marshal(auth)
 	if err != nil {
 		return nil, err
 	}
-	err = ioutil.WriteFile(authConfigPath(), authData, 0600)
-	if err != nil {
+	if _, err := writer.Write(authData); err != nil {
 		return nil, err
 	}
 	return &auth, nil
 }
 
-func AuthConfigExists() bool {
-	_, err := os.Stat(authConfigPath())
-	if err != nil {
-		return !os.IsNotExist(err)
-	}
-	return true
-}
-
 func createAuthConfig(configData []byte) *Auth {
 	var auth Auth
+	log.Println(configData)
 	err := json.Unmarshal(configData, &auth)
 	if err != nil {
 		log.Fatal(err)
 	}
 	return &auth
-}
-
-func authConfigPath() string {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		log.Fatal(err)
-	}
-	return filepath.Join(homeDir, authConfig)
 }
