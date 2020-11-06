@@ -26,26 +26,26 @@ func (reader MyReader) Read(p []byte) (n int, err error) {
 }
 
 func TestCreateAuthConfigEmptyValues(t *testing.T) {
-	_, err := CreateAuthConfig("", "", MyWriter{})
+	_, err := Create("", "", MyWriter{})
 	if err == nil {
 		t.Errorf("Create auth config should not be allowed with empty id and secret")
 	}
 
-	_, err = CreateAuthConfig("abc", "", MyWriter{})
+	_, err = Create("abc", "", MyWriter{})
 	if err == nil {
 		t.Errorf("Create auth config should not be allowed with id only")
 	}
 
-	_, err = CreateAuthConfig("", "abc", MyWriter{})
+	_, err = Create("", "abc", MyWriter{})
 	if err == nil {
 		t.Errorf("Create auth config should not be allowed with secret only")
 	}
 
-	_, err = CreateAuthConfig("abc", "123", MyWriter{})
+	_, err = Create("abc", "123", MyWriter{})
 }
 
 func TestCreateAuthConfig(t *testing.T) {
-	authentication, err := CreateAuthConfig("myid", "mysecret", MyWriter{})
+	authentication, err := Create("myid", "mysecret", MyWriter{})
 	if err != nil {
 		t.Errorf("Auth config should have been created successfully")
 	}
@@ -55,7 +55,7 @@ func TestCreateAuthConfig(t *testing.T) {
 }
 
 func TestRetrieveAuthConfig(t *testing.T) {
-	authentication, err := RetrieveAuthConfig(MyReader{})
+	authentication, err := Retrieve(MyReader{})
 	if err != nil {
 		t.Errorf("Auth config should have been read successfully")
 	}
@@ -72,5 +72,4 @@ func TestAuthBase64Encoded(t *testing.T) {
 	if encoded := authentication.Base64Encoded(); encodedIDSecret != encoded {
 		t.Errorf("Expected encoded value %v, instead value is %v", encodedIDSecret, encoded)
 	}
-
 }

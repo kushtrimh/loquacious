@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
-	"log"
+	"os"
 )
 
 // An Auth struct represent the authentication data
@@ -23,26 +23,55 @@ func (a *Auth) Base64Encoded() string {
 	return base64.StdEncoding.EncodeToString([]byte(authentication))
 }
 
-// Retrieve the auth data from the give config.
-// Error will be returned if the config file does not exist, or it
-// cannot be opened
-func RetrieveAuthConfig(reader io.Reader) (*Auth, error) {
-	if reader == nil {
-		errors.New("Reader is required")
+// CreateOrRetrieve creates the auth config data if id and secret are provided,
+// or returns the config data if it exists
+func CreateOrRetrieve(id, secret, configFilepath string) (*Auth, error) {
+	var fl *os.File
+	var authConfig *Auth
+	var err error
+
+	if id != "" && secret != "" {
+		fl, err = os.Create(configFilepath)
+		if err != nil {
+			return nil, err
+		}
+		authConfig, err = Create(id, secret, fl)
+	} else {
+		fl, err = os.Open(configFilepath)
+		if err != nil {
+			return nil, err
+		}
+		authConfig, err = Retrieve(fl)
 	}
-	data := make([]byte, 2048)
-	_, err := reader.Read(data)
+	fl.Close()
 	if err != nil {
-		log.Fatal("Could not read auth config data", err)
+		return nil, err
 	}
-	return createAuthConfig(bytes.Trim(data, "\x00")), nil
+	return authConfig, nil
 }
 
-// Create the auth config file with the given id and secret
+// Retrieve retrieves the auth data from the give config.
+// Error will be returned if the config file does not exist, or it
+// cannot be opened
+func Retrieve(reader io.Reader) (*Auth, error) {
+	data := make([]byte, 2048)
+	var err error
+	_, err = reader.Read(data)
+	if err != nil {
+		return nil, err
+	}
+	var authConfig *Auth
+	if authConfig, err = createAuthConfig(bytes.Trim(data, "\x00")); err != nil {
+		return nil, err
+	}
+	return authConfig, nil
+}
+
+// Create creates the auth config file with the given id and secret
 // The data in the created file will be saved as a JSON object
 // An error is returned if the file cannot be created or if any of the parameters
 // are missing.
-func CreateAuthConfig(id, secret string, writer io.Writer) (*Auth, error) {
+func Create(id, secret string, writer io.Writer) (*Auth, error) {
 	if id == "" || secret == "" || writer == nil {
 		return nil, errors.New("Id, secret and config filename are required")
 	}
@@ -57,12 +86,11 @@ func CreateAuthConfig(id, secret string, writer io.Writer) (*Auth, error) {
 	return &auth, nil
 }
 
-func createAuthConfig(configData []byte) *Auth {
+func createAuthConfig(configData []byte) (*Auth, error) {
 	var auth Auth
-	log.Println(configData)
 	err := json.Unmarshal(configData, &auth)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
-	return &auth
+	return &auth, nil
 }
