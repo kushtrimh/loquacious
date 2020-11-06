@@ -4,6 +4,8 @@ import (
 	"flag"
 	"fmt"
 	"github.com/kushtrimh/loquacious/auth"
+	"github.com/kushtrimh/loquacious/http"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 )
@@ -29,7 +31,6 @@ func main() {
 	if err != nil {
 		exit(err.Error())
 	}
-	fmt.Println(authConfig)
 }
 
 func exit(message string) {
