@@ -9,24 +9,31 @@ import (
 	"strings"
 )
 
-type ApiClient struct {
+// APIClient holds the structs and metadata needed to make
+// requests to the Twitter API
+type APIClient struct {
 	client       *http.Client
 	apiEndpoint  string
 	authEndpoint string
 	token        *Token
 }
 
+// Token represents the bearer token used to authenticate to the API
 type Token struct {
 	TokenType   string
 	AccessToken string
 }
 
-func NewApiClient(apiEndpoint, authEndpoint string) *ApiClient {
+// NewAPIClient return pointer to a new ApiClient
+// which can be used to make requests to the Twitter API
+func NewAPIClient(apiEndpoint, authEndpoint string) *APIClient {
 	client := &http.Client{}
-	return &ApiClient{client, apiEndpoint, authEndpoint, nil}
+	return &APIClient{client, apiEndpoint, authEndpoint, nil}
 }
 
-func (api *ApiClient) Get(urlPath string) (*http.Response, error) {
+// Get makes a GET request to the specified API endpoint in
+// the APIClient
+func (api *APIClient) Get(urlPath string) (*http.Response, error) {
 	req, err := http.NewRequest("GET", api.apiEndpoint+urlPath, nil)
 	if err != nil {
 		return nil, err
@@ -35,7 +42,11 @@ func (api *ApiClient) Get(urlPath string) (*http.Response, error) {
 	return api.Do(req)
 }
 
-func (api *ApiClient) Authenticate(authData *auth.Auth) error {
+// Authenticate accepts an *Auth struct and performs
+// authentication to the Twitter API, it sends the id and secret
+// as Base64 encoded and sets the Token in the APIClient
+// if the request is successful
+func (api *APIClient) Authenticate(authData *auth.Auth) error {
 	data := url.Values{}
 	data.Add("grant_type", "client_credentials")
 	req, err := http.NewRequest("POST", api.authEndpoint, strings.NewReader(data.Encode()))
@@ -58,7 +69,9 @@ func (api *ApiClient) Authenticate(authData *auth.Auth) error {
 	return nil
 }
 
-func (api *ApiClient) Do(request *http.Request) (*http.Response, error) {
+// Do performs a request to the API endpoint,
+// it returns the response if everything was successful or error
+func (api *APIClient) Do(request *http.Request) (*http.Response, error) {
 	response, err := api.client.Do(request)
 	if err != nil {
 		return nil, err
