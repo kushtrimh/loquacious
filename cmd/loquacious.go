@@ -1,45 +1,36 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"github.com/kushtrimh/loquacious/auth"
-	"github.com/kushtrimh/loquacious/cmd"
+	"github.com/kushtrimh/loquacious/http"
+	"io/ioutil"
 	"os"
 	"path/filepath"
+)
+
+var (
+	clientId     *string = flag.String("client-id", "", "client id of your application")
+	clientSecret *string = flag.String("client-secret", "", "client secret of your application")
 )
 
 const authConfigFilename string = ".loquacious-auth.json"
 
 func main() {
-	var err error
+	flag.Parse()
 
+	var err error
 	authConfigPath, err := authConfigHome(authConfigFilename)
 	if err != nil {
 		exit(err.Error())
 	}
 
 	var authConfig *auth.Auth
-	var fl *os.File
-
-	if *cmd.ClientId != "" && *cmd.ClientSecret != "" {
-		fl, err = os.Create(authConfigPath)
-		if err != nil {
-			exit(err.Error())
-		}
-		authConfig, err = auth.CreateAuthConfig(*cmd.ClientId, *cmd.ClientSecret, fl)
-	} else {
-		fl, err = os.Open(authConfigPath)
-		if err != nil {
-			exit(err.Error())
-		}
-		authConfig, err = auth.RetrieveAuthConfig(fl)
-	}
-	fl.Close()
+	authConfig, err = auth.CreateOrRetrieve(*clientId, *clientSecret, authConfigPath)
 	if err != nil {
 		exit(err.Error())
 	}
-
-	fmt.Println(authConfig)
 }
 
 func exit(message string) {
