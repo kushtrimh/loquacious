@@ -55,8 +55,7 @@ func CreateOrRetrieve(id, secret, configFilepath string) (*Auth, error) {
 // cannot be opened
 func Retrieve(reader io.Reader) (*Auth, error) {
 	data := make([]byte, 2048)
-	var err error
-	_, err = reader.Read(data)
+	_, err := reader.Read(data)
 	if err != nil {
 		return nil, err
 	}

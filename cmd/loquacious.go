@@ -4,8 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"github.com/kushtrimh/loquacious/auth"
-	"github.com/kushtrimh/loquacious/http"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 )
@@ -20,14 +18,12 @@ const authConfigFilename string = ".loquacious-auth.json"
 func main() {
 	flag.Parse()
 
-	var err error
 	authConfigPath, err := authConfigHome(authConfigFilename)
 	if err != nil {
 		exit(err.Error())
 	}
 
-	var authConfig *auth.Auth
-	authConfig, err = auth.CreateOrRetrieve(*clientId, *clientSecret, authConfigPath)
+	authConfig, err := auth.CreateOrRetrieve(*clientId, *clientSecret, authConfigPath)
 	if err != nil {
 		exit(err.Error())
 	}

@@ -1,9 +1,9 @@
-package http
+package apiclient
 
 import (
+	"encoding/json"
 	"github.com/kushtrimh/loquacious/auth"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/url"
 	"strings"
@@ -20,25 +20,26 @@ type APIClient struct {
 
 // Token represents the bearer token used to authenticate to the API
 type Token struct {
-	TokenType   string
-	AccessToken string
+	TokenType   string `json:"token_type"`
+	AccessToken string `json:"access_token"`
 }
 
-// NewAPIClient return pointer to a new ApiClient
+// New return pointer to a new ApiClient
 // which can be used to make requests to the Twitter API
-func NewAPIClient(apiEndpoint, authEndpoint string) *APIClient {
+func New(apiEndpoint, authEndpoint string) *APIClient {
 	client := &http.Client{}
 	return &APIClient{client, apiEndpoint, authEndpoint, nil}
 }
 
 // Get makes a GET request to the specified API endpoint in
 // the APIClient
-func (api *APIClient) Get(urlPath string) (*http.Response, error) {
+func (api *APIClient) Get(urlPath string, params url.Values) (*http.Response, error) {
 	req, err := http.NewRequest("GET", api.apiEndpoint+urlPath, nil)
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Add("Authentication", "Bearer "+api.token.AccessToken)
+	req.Header.Add("Authorization", "Bearer "+api.token.AccessToken)
+	req.URL.RawQuery = params.Encode()
 	return api.Do(req)
 }
 
@@ -60,12 +61,17 @@ func (api *APIClient) Authenticate(authData *auth.Auth) error {
 		return err
 	}
 	body, err := ioutil.ReadAll(response.Body)
-	response.Body.Close()
 	if err != nil {
 		return err
 	}
-	log.Println(body)
-	// TODO: set access token to api client
+	defer response.Body.Close()
+
+	token := &Token{}
+	err = json.Unmarshal(body, token)
+	if err != nil {
+		return err
+	}
+	api.token = token
 	return nil
 }
 
