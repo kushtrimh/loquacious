@@ -12,3 +12,13 @@ type TwitterUser struct {
 	Username string
 	Id       string
 }
+
+// FollowedUsernames returns a []string slice of username
+// for all the followed users
+func (conf *AppConfig) FollowedUsernames() []string {
+	usernames := make([]string, len(conf.FollowedUsers))
+	for _, user := range conf.FollowedUsers {
+		usernames = append(usernames, user.Username)
+	}
+	return usernames
+}
