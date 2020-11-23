@@ -2,17 +2,25 @@ package apiclient
 
 import (
 	"encoding/json"
+	"errors"
 	"github.com/kushtrimh/loquacious/auth"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 	"strings"
 )
 
+// HTTPClient represents a client that uses HTTP to make requests
+// to an endpoint
+type HTTPClient interface {
+	Do(req *http.Request) (*http.Response, error)
+}
+
 // APIClient holds the structs and metadata needed to make
 // requests to the Twitter API
 type APIClient struct {
-	client       *http.Client
+	client       HTTPClient
 	apiEndpoint  string
 	authEndpoint string
 	token        *Token
@@ -70,6 +78,10 @@ func (api *APIClient) Authenticate(authData *auth.Auth) error {
 	err = json.Unmarshal(body, token)
 	if err != nil {
 		return err
+	}
+	if token.AccessToken == "" {
+		log.Printf("Token not received from response, instead got %s", body)
+		return errors.New("Token not returned from error")
 	}
 	api.token = token
 	return nil
