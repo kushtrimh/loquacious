@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/kushtrimh/loquacious/auth"
+	"github.com/kushtrimh/loquacious/twitter"
 	"os"
 	"path/filepath"
 )
@@ -27,6 +28,11 @@ func main() {
 	if err != nil {
 		exit(err.Error())
 	}
+	t, err := twitter.New(authConfig)
+	if err != nil {
+		exit(err.Error())
+	}
+	t.UserTimeline("khajrizi")
 }
 
 func exit(message string) {

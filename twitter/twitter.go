@@ -1,9 +1,11 @@
 package twitter
 
 import (
+	"encoding/json"
 	"github.com/kushtrimh/loquacious/apiclient"
 	"github.com/kushtrimh/loquacious/auth"
 	"io/ioutil"
+	"log"
 	"net/url"
 )
 
@@ -34,18 +36,24 @@ func New(authData *auth.Auth) (*Twitter, error) {
 	return &Twitter{client, authData}, nil
 }
 
-func (t *Twitter) UserTimeline(user string) error {
+// UserTimeline returns tweets from the timeline of the specified user.
+// To retrieve the tweets user should have a public profile
+func (t *Twitter) UserTimeline(user string) ([]Tweet, error) {
 	queryParams := url.Values{}
 	queryParams.Add("screen_name", user)
+	queryParams.Add("count", "200")
 	response, err := t.client.Get("/statuses/user_timeline.json", queryParams)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	body, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer response.Body.Close()
-	// TODO: Unmarshall
-	return nil
+	tweets := make([]Tweet, 100)
+	json.Unmarshal(body, &tweets)
+	log.Printf("Response status code for user timeline %d request. User @%s, tweets returned %d",
+		response.StatusCode, user, len(tweets))
+	return tweets, nil
 }
