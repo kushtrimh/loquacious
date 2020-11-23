@@ -14,7 +14,12 @@ var (
 	clientSecret *string = flag.String("client-secret", "", "client secret of your application")
 )
 
-const authConfigFilename string = ".loquacious-auth.json"
+const (
+	basedir               string = ".loquacious"
+	authConfigFilename    string = ".loquacious-auth.json"
+	appConfigFilename     string = basedir + "/.lapp.yaml"
+	twitterConfigFilename string = basedir + "/.ltwitter.yaml"
+)
 
 func main() {
 	flag.Parse()
