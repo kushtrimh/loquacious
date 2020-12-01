@@ -3,8 +3,8 @@ package auth
 import (
 	"bytes"
 	"encoding/base64"
-	"encoding/json"
 	"errors"
+	"gopkg.in/yaml.v2"
 	"io"
 	"os"
 )
@@ -67,7 +67,7 @@ func Retrieve(reader io.Reader) (*Auth, error) {
 }
 
 // Create creates the auth config file with the given id and secret
-// The data in the created file will be saved as a JSON object
+// The data in the created file will be saved in YAML
 // An error is returned if the file cannot be created or if any of the parameters
 // are missing.
 func Create(id, secret string, writer io.Writer) (*Auth, error) {
@@ -75,7 +75,7 @@ func Create(id, secret string, writer io.Writer) (*Auth, error) {
 		return nil, errors.New("Id, secret and config filename are required")
 	}
 	auth := Auth{id, secret}
-	authData, err := json.Marshal(auth)
+	authData, err := yaml.Marshal(auth)
 	if err != nil {
 		return nil, err
 	}
@@ -87,7 +87,7 @@ func Create(id, secret string, writer io.Writer) (*Auth, error) {
 
 func createAuthConfig(configData []byte) (*Auth, error) {
 	var auth Auth
-	err := json.Unmarshal(configData, &auth)
+	err := yaml.Unmarshal(configData, &auth)
 	if err != nil {
 		return nil, err
 	}

@@ -2,9 +2,10 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"github.com/kushtrimh/loquacious/auth"
+	"github.com/kushtrimh/loquacious/config"
 	"github.com/kushtrimh/loquacious/twitter"
+	"log"
 	"os"
 	"path/filepath"
 )
@@ -14,36 +15,47 @@ var (
 	clientSecret *string = flag.String("client-secret", "", "client secret of your application")
 )
 
-const authConfigFilename string = ".loquacious-auth.json"
+const (
+	basedir            string = ".loquacious"
+	authConfigFilename string = basedir + "/lauth.yaml"
+	appConfigFilename  string = basedir + "/lapp.yaml"
+)
 
 func main() {
 	flag.Parse()
 
-	authConfigPath, err := authConfigHome(authConfigFilename)
+	appConfigPath := joinHomeDir(appConfigFilename)
+	appConfig, err := config.Init(appConfigPath)
 	if err != nil {
-		exit(err.Error())
+		exit(err)
 	}
+	log.Printf("App config initialized %v\n", appConfig)
 
+	authConfigPath := joinHomeDir(authConfigFilename)
 	authConfig, err := auth.CreateOrRetrieve(*clientId, *clientSecret, authConfigPath)
 	if err != nil {
-		exit(err.Error())
+		exit(err)
 	}
-	t, err := twitter.New(authConfig)
+	log.Println("Auth config initialized")
+
+	_, err = twitter.New(authConfig)
 	if err != nil {
-		exit(err.Error())
+		exit(err)
 	}
-	t.UserTimeline("khajrizi")
+	// t.UserTimeline("khajrizi")
+
 }
 
-func exit(message string) {
-	fmt.Fprintf(os.Stderr, message+"\n")
+func exit(err error) {
+	log.Fatalln(err)
 	os.Exit(1)
 }
 
-func authConfigHome(configFilename string) (string, error) {
+func joinHomeDir(configFilename string) string {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
-		return "", err
+		log.Fatalf("Could not create path for config directory for %s with homedir %s, %v",
+			configFilename, homeDir, err)
 	}
-	return filepath.Join(homeDir, configFilename), nil
+	return filepath.Join(homeDir, configFilename)
 }
