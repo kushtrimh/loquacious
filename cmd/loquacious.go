@@ -17,26 +17,26 @@ var (
 
 const (
 	basedir            string = ".loquacious"
-	authConfigFilename string = ".loquacious-auth.json"
+	authConfigFilename string = basedir + "/lauth.yaml"
 	appConfigFilename  string = basedir + "/lapp.yaml"
 )
 
 func main() {
 	flag.Parse()
 
-	authConfigPath := joinHomeDir(authConfigFilename)
-	authConfig, err := auth.CreateOrRetrieve(*clientId, *clientSecret, authConfigPath)
-	if err != nil {
-		exit(err)
-	}
-
 	appConfigPath := joinHomeDir(appConfigFilename)
 	appConfig, err := config.Init(appConfigPath)
 	if err != nil {
 		exit(err)
 	}
-	log.Println("App config initialized")
-	log.Println(appConfig)
+	log.Printf("App config initialized %v\n", appConfig)
+
+	authConfigPath := joinHomeDir(authConfigFilename)
+	authConfig, err := auth.CreateOrRetrieve(*clientId, *clientSecret, authConfigPath)
+	if err != nil {
+		exit(err)
+	}
+	log.Println("Auth config initialized")
 
 	_, err = twitter.New(authConfig)
 	if err != nil {
