@@ -38,12 +38,16 @@ func main() {
 	}
 	log.Println("Auth config initialized")
 
-	_, err = twitter.New(authConfig)
+	t, err := twitter.New(authConfig)
 	if err != nil {
 		exit(err)
 	}
-	// t.UserTimeline("khajrizi")
 
+	tweetCount, err := t.TodayTweetCount("khajrizi")
+	if err != nil {
+		exit(err)
+	}
+	log.Println(tweetCount)
 }
 
 func exit(err error) {
