@@ -25,6 +25,7 @@ func Init(appConfigFilename string) (*AppConfig, error) {
 	}
 	config := &AppConfig{}
 	yaml.Unmarshal(content, config)
+	App = config
 	return config, nil
 }
 
@@ -48,5 +49,6 @@ func createConfig(configFilename string) (*AppConfig, error) {
 		return nil, err
 	}
 	fl.Write(content)
+	App = config
 	return config, nil
 }
