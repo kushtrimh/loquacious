@@ -16,6 +16,13 @@ type Tweet struct {
 	CreatedAt string `json:"created_at"`
 }
 
+// tweetCount represents a user (twitter handle) and the tweet count
+// for the specified user
+type tweetCount struct {
+	user  string
+	count int
+}
+
 // UserTimeline returns tweets from the timeline of the specified user.
 // To retrieve the tweets user should have a public profile
 func (t *Twitter) UserTimeline(user string) ([]Tweet, error) {
@@ -62,4 +69,36 @@ func (t *Twitter) TodayTweetCount(user string) (int, error) {
 		}
 	}
 	return count, nil
+}
+
+// TodayTweetCounts returns a map containing all the number of tweets
+// for today, for all the added users
+func (t *Twitter) TodayTweetCounts() map[string]int {
+	users := config.App.FollowedUsers
+	counts := make(map[string]int)
+	channels := make([]chan tweetCount, 0, len(users))
+
+	for _, user := range users {
+		c := make(chan tweetCount)
+		channels = append(channels, c)
+		go t.count(c, user)
+	}
+
+	for _, c := range channels {
+		var data tweetCount
+		data = <-c
+		counts[data.user] = data.count
+	}
+	return counts
+}
+
+// count is a function which gets the tweet count of the specified
+// user and sends the data back to a channel
+func (t *Twitter) count(c chan tweetCount, user string) {
+	count, err := t.TodayTweetCount(user)
+	if err != nil {
+		log.Printf("Could not get tweet count for user %s, %v", user, err)
+		return
+	}
+	c <- tweetCount{user, count}
 }

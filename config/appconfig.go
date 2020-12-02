@@ -14,6 +14,8 @@ type AppConfig struct {
 	FollowedUsers          []string `yaml:"followedUsers"`
 }
 
+// AddFollowedUser adds a user into configuration, and updates
+// the configuration file
 func (conf *AppConfig) AddFollowedUser(user string) {
 	conf.FollowedUsers = append(conf.FollowedUsers, user)
 	err := merge(conf)
@@ -23,6 +25,8 @@ func (conf *AppConfig) AddFollowedUser(user string) {
 	}
 }
 
+// FollowedUserExists checks if the specified user already exists
+// in the configuration
 func (conf *AppConfig) FollowedUserExists(user string) bool {
 	for _, existingUser := range conf.FollowedUsers {
 		if existingUser == user {
@@ -32,6 +36,8 @@ func (conf *AppConfig) FollowedUserExists(user string) bool {
 	return false
 }
 
+// merge updates the configuration file, with the current data
+// from the config type
 func merge(conf *AppConfig) error {
 	content, err := yaml.Marshal(conf)
 	if err != nil {

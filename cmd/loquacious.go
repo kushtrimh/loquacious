@@ -9,6 +9,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"time"
 )
 
 var (
@@ -56,6 +57,7 @@ func main() {
 		fmt.Printf("User %s added successfully!\n", userToAdd)
 	} else {
 		// Count all the tweets and display the result
+		display(t.TodayTweetCounts())
 	}
 }
 
@@ -74,5 +76,9 @@ func joinHomeDir(configFilename string) string {
 }
 
 func display(tweetCounts map[string]int) {
-
+	now := time.Now()
+	fmt.Printf("Today is %s", now.Format("02/01/2006 (Mon)\n"))
+	for user, count := range tweetCounts {
+		fmt.Printf("%s: %d tweets\n", user, count)
+	}
 }
