@@ -1,24 +1,51 @@
 package config
 
+import (
+	"gopkg.in/yaml.v2"
+	"io/ioutil"
+	"log"
+)
+
 // AppConfig holds all the configuration used in different parts
 // of the application
 type AppConfig struct {
-	UserTimelineTweetCount int           `yaml:"userTimelineTweetCount"`
-	FollowedUsers          []TwitterUser `yaml:"followedUsers"`
+	configFilename         string   `yaml:-`
+	UserTimelineTweetCount int      `yaml:"userTimelineTweetCount"`
+	FollowedUsers          []string `yaml:"followedUsers"`
 }
 
-// TwitterUser holds information about a specific user from Twitter
-type TwitterUser struct {
-	Username string `yaml:"username"`
-	Id       string `yaml:"id"`
-}
-
-// FollowedUsernames returns a []string slice of username
-// for all the followed users
-func (conf *AppConfig) FollowedUsernames() []string {
-	usernames := make([]string, len(conf.FollowedUsers))
-	for _, user := range conf.FollowedUsers {
-		usernames = append(usernames, user.Username)
+// AddFollowedUser adds a user into configuration, and updates
+// the configuration file
+func (conf *AppConfig) AddFollowedUser(user string) {
+	conf.FollowedUsers = append(conf.FollowedUsers, user)
+	err := merge(conf)
+	if err != nil {
+		log.Fatalf("Could not update configuration when adding user %s, %v",
+			user, err)
 	}
-	return usernames
+}
+
+// FollowedUserExists checks if the specified user already exists
+// in the configuration
+func (conf *AppConfig) FollowedUserExists(user string) bool {
+	for _, existingUser := range conf.FollowedUsers {
+		if existingUser == user {
+			return true
+		}
+	}
+	return false
+}
+
+// merge updates the configuration file, with the current data
+// from the config type
+func merge(conf *AppConfig) error {
+	content, err := yaml.Marshal(conf)
+	if err != nil {
+		return err
+	}
+	err = ioutil.WriteFile(conf.configFilename, content, 0600)
+	if err != nil {
+		return err
+	}
+	return nil
 }
