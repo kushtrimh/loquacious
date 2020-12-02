@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"github.com/kushtrimh/loquacious/auth"
 	"github.com/kushtrimh/loquacious/config"
 	"github.com/kushtrimh/loquacious/twitter"
@@ -13,6 +14,7 @@ import (
 var (
 	clientId     *string = flag.String("client-id", "", "client id of your application")
 	clientSecret *string = flag.String("client-secret", "", "client secret of your application")
+	userToAdd    *string = flag.String("add-user", "", "add user whose tweets you want to count")
 )
 
 const (
@@ -22,6 +24,7 @@ const (
 )
 
 func main() {
+	log.SetPrefix("[loquacious] ")
 	flag.Parse()
 
 	appConfigPath := joinHomeDir(appConfigFilename)
@@ -42,12 +45,18 @@ func main() {
 	if err != nil {
 		exit(err)
 	}
+	log.Println("Twitter API client initialized")
 
-	tweetCount, err := t.TodayTweetCount("khajrizi")
-	if err != nil {
-		exit(err)
+	userToAdd := *userToAdd
+	if userToAdd != "" {
+		if err := t.AddUser(userToAdd); err != nil {
+			fmt.Printf("Could not add user %s, %v", userToAdd, err)
+			os.Exit(1)
+		}
+		fmt.Printf("User %s added successfully!\n", userToAdd)
+	} else {
+		// Count all the tweets and display the result
 	}
-	log.Println(tweetCount)
 }
 
 func exit(err error) {
@@ -62,4 +71,8 @@ func joinHomeDir(configFilename string) string {
 			configFilename, homeDir, err)
 	}
 	return filepath.Join(homeDir, configFilename)
+}
+
+func display(tweetCounts map[string]int) {
+
 }

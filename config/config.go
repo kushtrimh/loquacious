@@ -23,7 +23,7 @@ func Init(appConfigFilename string) (*AppConfig, error) {
 	if err != nil {
 		return nil, err
 	}
-	config := &AppConfig{}
+	config := &AppConfig{configFilename: appConfigFilename}
 	yaml.Unmarshal(content, config)
 	App = config
 	return config, nil
@@ -42,7 +42,7 @@ func createConfig(configFilename string) (*AppConfig, error) {
 	defer fl.Close()
 	config := &AppConfig{
 		UserTimelineTweetCount: 200,
-		FollowedUsers:          []TwitterUser{},
+		FollowedUsers:          []string{},
 	}
 	content, err := yaml.Marshal(config)
 	if err != nil {
