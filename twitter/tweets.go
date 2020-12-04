@@ -43,7 +43,7 @@ func (t *Twitter) UserTimeline(user string) ([]Tweet, error) {
 	if err != nil {
 		return nil, err
 	}
-	log.Printf("Response for user timeline query [%d]. User @%s, tweets returned %d",
+	log.Printf("Response for user timeline query [statusCode=%d]. User @%s, tweets returned %d",
 		response.StatusCode, user, len(tweets))
 	return tweets, nil
 }
@@ -74,10 +74,11 @@ func (t *Twitter) TodayTweetCount(user string) (int, error) {
 // TodayTweetCounts returns a map containing all the number of tweets
 // for today, for all the added users
 func (t *Twitter) TodayTweetCounts() map[string]int {
-	users := config.App.FollowedUsers
+	users := config.App.Users
 	counts := make(map[string]int)
 	channels := make([]chan tweetCount, 0, len(users))
 
+	log.Printf("Started tweet count for %d users, %v", len(users), time.Now())
 	for _, user := range users {
 		c := make(chan tweetCount)
 		channels = append(channels, c)
@@ -89,6 +90,7 @@ func (t *Twitter) TodayTweetCounts() map[string]int {
 		data = <-c
 		counts[data.user] = data.count
 	}
+	log.Printf("Finished tweet count %v", time.Now())
 	return counts
 }
 

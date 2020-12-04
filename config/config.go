@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 )
 
+const maxAllowedUsers int = 200
+
 // App holds a pointer to the app config create on the Init function call.
 // It is there for ease of use on all other needed packages
 var App *AppConfig = &AppConfig{}
@@ -23,7 +25,9 @@ func Init(appConfigFilename string) (*AppConfig, error) {
 	if err != nil {
 		return nil, err
 	}
-	config := &AppConfig{configFilename: appConfigFilename}
+	config := &AppConfig{
+		configFilename:  appConfigFilename,
+		maxAllowedUsers: maxAllowedUsers}
 	yaml.Unmarshal(content, config)
 	App = config
 	return config, nil
@@ -42,7 +46,7 @@ func createConfig(configFilename string) (*AppConfig, error) {
 	defer fl.Close()
 	config := &AppConfig{
 		UserTimelineTweetCount: 200,
-		FollowedUsers:          []string{},
+		Users:                  []string{},
 	}
 	content, err := yaml.Marshal(config)
 	if err != nil {

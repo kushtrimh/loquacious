@@ -11,8 +11,9 @@ import (
 // of the application
 type AppConfig struct {
 	configFilename         string   `yaml:-`
+	maxAllowedUsers        int      `yaml:-`
 	UserTimelineTweetCount int      `yaml:"userTimelineTweetCount"`
-	FollowedUsers          []string `yaml:"followedUsers"`
+	Users                  []string `yaml:"users"`
 }
 
 func (conf *AppConfig) String() string {
@@ -22,13 +23,13 @@ func (conf *AppConfig) String() string {
 		followedUsers: %v`,
 		conf.configFilename,
 		conf.UserTimelineTweetCount,
-		conf.FollowedUsers)
+		conf.Users)
 }
 
-// AddFollowedUser adds a user into configuration, and updates
+// AddUser adds a user into configuration, and updates
 // the configuration file
-func (conf *AppConfig) AddFollowedUser(user string) {
-	conf.FollowedUsers = append(conf.FollowedUsers, user)
+func (conf *AppConfig) AddUser(user string) {
+	conf.Users = append(conf.Users, user)
 	err := merge(conf)
 	if err != nil {
 		log.Fatalf("Could not update configuration when adding user %s, %v",
@@ -36,15 +37,21 @@ func (conf *AppConfig) AddFollowedUser(user string) {
 	}
 }
 
-// FollowedUserExists checks if the specified user already exists
+// UserExists checks if the specified user already exists
 // in the configuration
-func (conf *AppConfig) FollowedUserExists(user string) bool {
-	for _, existingUser := range conf.FollowedUsers {
+func (conf *AppConfig) UserExists(user string) bool {
+	for _, existingUser := range conf.Users {
 		if existingUser == user {
 			return true
 		}
 	}
 	return false
+}
+
+// MaximiumUsersReached returns true if no more users
+// can be added, and false otherwise
+func (conf *AppConfig) MaximiumUsersReached() bool {
+	return len(conf.Users) >= conf.maxAllowedUsers
 }
 
 // merge updates the configuration file, with the current data

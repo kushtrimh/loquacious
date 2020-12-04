@@ -59,8 +59,11 @@ func (t *Twitter) UserAvailable(user string) bool {
 // AddUser adds a user to the configuration
 // if the user exists and its available for adding
 func (t *Twitter) AddUser(user string) error {
-	if config.App.FollowedUserExists(user) {
-		return nil
+	if config.App.UserExists(user) {
+		return errors.New("User already exists")
+	}
+	if config.App.MaximiumUsersReached() {
+		return errors.New("Maximum allow users capacity reached")
 	}
 	twitterUser, err := t.QueryUser(user)
 	if err != nil {
@@ -69,6 +72,6 @@ func (t *Twitter) AddUser(user string) error {
 	if twitterUser.Protected {
 		return errors.New("User profile is protected")
 	}
-	config.App.AddFollowedUser(twitterUser.Handle)
+	config.App.AddUser(twitterUser.Handle)
 	return nil
 }
