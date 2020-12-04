@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"log"
@@ -12,6 +13,16 @@ type AppConfig struct {
 	configFilename         string   `yaml:-`
 	UserTimelineTweetCount int      `yaml:"userTimelineTweetCount"`
 	FollowedUsers          []string `yaml:"followedUsers"`
+}
+
+func (conf *AppConfig) String() string {
+	return fmt.Sprintf(`
+		config: %s,
+		userTimelineTweetCount: %d,
+		followedUsers: %v`,
+		conf.configFilename,
+		conf.UserTimelineTweetCount,
+		conf.FollowedUsers)
 }
 
 // AddFollowedUser adds a user into configuration, and updates
