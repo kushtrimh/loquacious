@@ -43,7 +43,7 @@ func (t *Twitter) UserTimeline(user string) ([]Tweet, error) {
 	if err != nil {
 		return nil, err
 	}
-	log.Printf("Response status code for user timeline %d request. User @%s, tweets returned %d",
+	log.Printf("Response for user timeline query [%d]. User @%s, tweets returned %d",
 		response.StatusCode, user, len(tweets))
 	return tweets, nil
 }
