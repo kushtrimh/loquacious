@@ -15,7 +15,9 @@ import (
 var (
 	clientId     *string = flag.String("client-id", "", "client id of your application")
 	clientSecret *string = flag.String("client-secret", "", "client secret of your application")
-	userToAdd    *string = flag.String("add-user", "", "add user whose tweets you want to count")
+	userToAdd    *string = flag.String("add", "", "add user whose tweets you want to count")
+	userToRemove *string = flag.String("remove", "", "remove user whose tweets you don't want to count")
+	showUsers    *bool   = flag.Bool("users", false, "list all the added users alphabetically")
 )
 
 const (
@@ -56,13 +58,12 @@ func main() {
 	}
 	log.Println("Twitter API client initialized")
 
-	userToAdd := *userToAdd
-	if userToAdd != "" {
-		if err := t.AddUser(userToAdd); err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
-		fmt.Printf("User %s added successfully!\n", userToAdd)
+	if *userToAdd != "" {
+		t.AddUser(*userToAdd)
+		fmt.Printf("User %s added successfully!\n", *userToAdd)
+	} else if *userToRemove != "" {
+		appConfig.RemoveUser(*userToRemove)
+		fmt.Printf("User %s removed successfully!\n", *userToRemove)
 	} else {
 		// Count all the tweets and display the result
 		display(t.TodayTweetCounts())
