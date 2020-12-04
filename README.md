@@ -49,7 +49,7 @@ $ loquacious -help
 You can add specific users by their Twitter handle, whose daily tweet count you want to see.
 Only users whose account is not protected/private are available for adding.
 ```bash
-$ loquacious -add-user FooBar
+$ loquacious -add FooBar
 ```
 
 ### Getting the daily tweet counts
@@ -67,4 +67,12 @@ Today is 03/12/2020 (Thu)
 FooBar: 0 tweets
 FooBar1: 4 tweets
 FooBar2: 5 tweets
+```
+
+### Removing users
+
+To remove a user run
+
+```bash 
+$ loquacious -remove FooBar
 ```
