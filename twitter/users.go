@@ -31,6 +31,11 @@ func (t *Twitter) QueryUser(user string) (*User, error) {
 	if err != nil {
 		return nil, err
 	}
+	if response.StatusCode != 200 {
+		log.Printf("Could not add user because %s, response status code %d, %s",
+			user, response.StatusCode, string(body))
+		return nil, errors.New("User is invalid or does not exist")
+	}
 	twitterUser := &User{}
 	err = json.Unmarshal(body, twitterUser)
 	if err != nil {
@@ -54,8 +59,11 @@ func (t *Twitter) UserAvailable(user string) bool {
 // AddUser adds a user to the configuration
 // if the user exists and its available for adding
 func (t *Twitter) AddUser(user string) error {
-	if config.App.FollowedUserExists(user) {
-		return nil
+	if config.App.UserExists(user) {
+		return errors.New("User already exists")
+	}
+	if config.App.MaximiumUsersReached() {
+		return errors.New("Maximum allow users capacity reached")
 	}
 	twitterUser, err := t.QueryUser(user)
 	if err != nil {
@@ -64,6 +72,18 @@ func (t *Twitter) AddUser(user string) error {
 	if twitterUser.Protected {
 		return errors.New("User profile is protected")
 	}
-	config.App.AddFollowedUser(twitterUser.Handle)
+	config.App.AddUser(twitterUser.Handle)
 	return nil
+}
+
+// Following returns a slice of handles of the users
+// that the specified user is following
+func (t *Twitter) Following(user string) ([]string, error) {
+	return nil, errors.New("Not implemented yet")
+}
+
+// Followers returns a slice of handles of the users
+// that follow the specified user
+func (t *Twitter) Followers(user string) ([]string, error) {
+	return nil, errors.New("Not implemented yet")
 }

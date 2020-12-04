@@ -20,12 +20,20 @@ var (
 
 const (
 	basedir            string = ".loquacious"
+	logFilename        string = basedir + "/loquacious.log"
 	authConfigFilename string = basedir + "/lauth.yaml"
 	appConfigFilename  string = basedir + "/lapp.yaml"
 )
 
+var logFile os.File
+
 func main() {
+	logFile, err := os.OpenFile(joinHomeDir(logFilename), os.O_APPEND|os.O_CREATE|os.O_RDWR, 0666)
+	if err != nil {
+		exit(err)
+	}
 	log.SetPrefix("[loquacious] ")
+	log.SetOutput(logFile)
 	flag.Parse()
 
 	appConfigPath := joinHomeDir(appConfigFilename)
@@ -51,7 +59,7 @@ func main() {
 	userToAdd := *userToAdd
 	if userToAdd != "" {
 		if err := t.AddUser(userToAdd); err != nil {
-			fmt.Printf("Could not add user %s, %v", userToAdd, err)
+			fmt.Println(err)
 			os.Exit(1)
 		}
 		fmt.Printf("User %s added successfully!\n", userToAdd)
@@ -63,6 +71,7 @@ func main() {
 
 func exit(err error) {
 	log.Fatalln(err)
+	logFile.Close()
 	os.Exit(1)
 }
 
@@ -79,6 +88,6 @@ func display(tweetCounts map[string]int) {
 	now := time.Now()
 	fmt.Printf("Today is %s", now.Format("02/01/2006 (Mon)\n"))
 	for user, count := range tweetCounts {
-		fmt.Printf("%s: %d tweets\n", user, count)
+		fmt.Printf("%s: %d\n", user, count)
 	}
 }
