@@ -75,3 +75,15 @@ func (t *Twitter) AddUser(user string) error {
 	config.App.AddUser(twitterUser.Handle)
 	return nil
 }
+
+// Following returns a slice of handles of the users
+// that the specified user is following
+func (t *Twitter) Following(user string) ([]string, error) {
+	return nil, errors.New("Not implemented yet")
+}
+
+// Followers returns a slice of handles of the users
+// that follow the specified user
+func (t *Twitter) Followers(user string) ([]string, error) {
+	return nil, errors.New("Not implemented yet")
+}
