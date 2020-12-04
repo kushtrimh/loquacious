@@ -31,6 +31,11 @@ func (t *Twitter) QueryUser(user string) (*User, error) {
 	if err != nil {
 		return nil, err
 	}
+	if response.StatusCode != 200 {
+		log.Printf("Could not add user because %s, response status code %d, %s",
+			user, response.StatusCode, string(body))
+		return nil, errors.New("User is invalid or does not exist")
+	}
 	twitterUser := &User{}
 	err = json.Unmarshal(body, twitterUser)
 	if err != nil {

@@ -59,7 +59,7 @@ func main() {
 	userToAdd := *userToAdd
 	if userToAdd != "" {
 		if err := t.AddUser(userToAdd); err != nil {
-			fmt.Printf("Could not add user %s, %v", userToAdd, err)
+			fmt.Println(err)
 			os.Exit(1)
 		}
 		fmt.Printf("User %s added successfully!\n", userToAdd)
