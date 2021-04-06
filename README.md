@@ -1,4 +1,4 @@
-# loquacious (In progress...)
+# loquacious
 
 Command line application that returns the number of tweets/retweets made daily by users
 
